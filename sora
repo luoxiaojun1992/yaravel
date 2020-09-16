@@ -1,0 +1,54 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Sora command line tool.
+ *
+ * @author overtrue <i@overtrue.me>
+ */
+
+require_once __DIR__.'/vendor/autoload.php';
+
+use App\Services\Console\Application;
+
+define('BASE_PATH', __DIR__);
+define('ROOT_PATH', BASE_PATH);
+define('APP_PATH', ROOT_PATH . '/app');
+define('COMMAND_PATH', APP_PATH . '/commands');
+define('STORAGE_PATH', ROOT_PATH . '/storage');
+define('APP_START', microtime(true));
+
+require_once ROOT_PATH . '/bootstrap/console/Bootstrap.php';
+
+(new Bootstrap())->init();
+
+$application = new Application();
+
+//Register Commands
+function registerCommands($cmdPath, $application, $namespace, $excludedFiles = [])
+{
+    $excludedFiles = (array)$excludedFiles;
+    foreach (glob($cmdPath) as $file) {
+        $commandFileName = basename($file);
+        if (in_array($commandFileName, $excludedFiles)) {
+            continue;
+        }
+        $commandClassName = $namespace . substr($commandFileName, 0, -1 * (strlen('.php')));
+        $application->add(new $commandClassName);
+    }
+}
+
+$commandFileSuffix = 'Command.php';
+registerCommands(
+    COMMAND_PATH . '/*' . $commandFileSuffix,
+    $application,
+    'App\\Commands\\',
+    $commandFileSuffix
+);
+registerCommands(
+    COMMAND_PATH . '/Queue/*' . $commandFileSuffix,
+    $application,
+    'App\\Commands\\Queue\\'
+);
+
+$application->run();

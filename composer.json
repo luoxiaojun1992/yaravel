@@ -1,0 +1,126 @@
+{
+  "name": "luoxiaojun/yaravel",
+  "description": "Yaf framework skeleton for Laravel User",
+  "type": "project",
+  "keywords": [
+    "php",
+    "framework",
+    "skeleton",
+    "yaf",
+    "laravel"
+  ],
+  "authors": [
+    {
+      "name": "overtrue",
+      "email": "i@overtrue.me"
+    },
+    {
+      "name": "luoxiaojun",
+      "email": "luoxiaojun1992@sina.cn"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "": "app/facades",
+      "App\\Commands\\": "app/commands",
+      "App\\Services\\": "app/services",
+      "App\\Exceptions\\": "app/exceptions",
+      "App\\Support\\": "app/support",
+      "App\\Models\\": "app/models",
+      "App\\Domains\\": "app/domains",
+      "App\\Jobs\\": "app/jobs",
+      "App\\Consts\\": "app/consts",
+      "App\\Events\\": "app/events"
+    },
+    "files": [
+      "app/helpers.php",
+      "app/support/helpers.php"
+    ],
+    "classmap": [
+      "app/thirdparty"
+    ]
+  },
+  "autoload-dev": {
+    "classmap": [
+      "./tests"
+    ]
+  },
+  "require": {
+    "php": ">=7.1",
+    "ext-json": "*",
+    "ext-yaf": "*",
+    "cviebrock/laravel-elasticsearch": "~3.4",
+    "guzzlehttp/guzzle": "^6.3",
+    "guzzlehttp/promises": "^1.3",
+    "guzzlehttp/psr7": "^1.4",
+    "illuminate/bus": "5.5.*",
+    "illuminate/cache": "5.5.*",
+    "illuminate/config": "5.5.*",
+    "illuminate/contracts": "5.5.*",
+    "illuminate/database": "5.5.*",
+    "illuminate/events": "5.5.*",
+    "illuminate/log": "5.5.*",
+    "illuminate/pagination": "5.5.*",
+    "illuminate/queue": "5.5.*",
+    "illuminate/redis": "5.5.*",
+    "illuminate/support": "5.5.*",
+    "illuminate/validation": "5.5.*",
+    "league/flysystem": "^1.0.8",
+    "league/plates": "~3.0",
+    "monolog/monolog": "~1.0",
+    "nesbot/carbon": "^1.24.1",
+    "openzipkin/zipkin": "1.3.2",
+    "phpoffice/phpspreadsheet": "~1.12.0",
+    "psr/container": "^1.0",
+    "psr/http-message": "~1.0",
+    "psr/log": "~1.0",
+    "psy/psysh": "~0.10.4",
+    "sentry/sentry-laravel": "^0.10.0",
+    "swiftmailer/swiftmailer": "^6.0",
+    "symfony/console": "3.*",
+    "vlucas/phpdotenv": "~2.2"
+  },
+  "require-dev": {
+    "filp/whoops": "~2.1@stable",
+    "friendsofphp/php-cs-fixer": "~2.7.0@stable",
+    "fzaninotto/faker": "~1.4",
+    "mockery/mockery": "~1.0",
+    "overtrue/phplint": "dev-master",
+    "phpmd/phpmd": "~2.6@stable",
+    "phpunit/phpunit": "~6.0",
+    "sebastian/phpcpd": "~2.0@stable",
+    "sebastian/phpdcd": "~1.0@stable",
+    "squizlabs/php_codesniffer": "3.0.x-dev",
+    "symfony/var-dumper": "~3.0"
+  },
+  "config": {
+    "optimize-autoload": true,
+    "sort-packages": true,
+    "preferred-install": {
+      "*": "dist"
+    }
+  },
+  "suggest": {
+    "ext-pcntl": "*",
+    "league/plates": "Plates is a native PHP template system that's fast, easy to use and easy to extend.",
+    "illuminate/database": "The best PHP ORM Engine from Laravel.",
+    "illuminate/validation": "The form validation component from Laravel."
+  },
+  "license": "MIT",
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://mirrors.aliyun.com/composer/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "scripts": {
+    "post-root-package-install": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
+    "post-install-cmd": [
+      "@php sora optimizer"
+    ]
+  }
+}
