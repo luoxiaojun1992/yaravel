@@ -2,19 +2,16 @@
 
 namespace App\Jobs;
 
-use Illuminate\Queue\Jobs\Job as QueueJob;
-
 class TestJob extends Job
 {
     protected $data;
 
-    public function handle(QueueJob $job)
+    public function __construct($data)
     {
-        $this->data = $job->payload()['data'];
-        $this->process();
+        $this->data = $data;
     }
 
-    protected function process()
+    public function handle()
     {
         var_dump($this->data);
     }

@@ -186,7 +186,7 @@
 //     */
 //    public function queueAction()
 //    {
-//        Queue::push(\App\Jobs\TestJob::class . '@handle', ['foo' => 'bar'], 'default');
+//        \App\Jobs\TestJob::dispatch('data');
 //    }
 //
 //    /**
