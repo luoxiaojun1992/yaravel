@@ -348,20 +348,18 @@ class BaseRepository
      */
     public function getList($page, $sort, $mid, $params)
     {
-        $model = $this->getModel($mid);
-        if ($model instanceof \Jenssegers\Mongodb\Eloquent\Model) {
-            $query = $this->mongoSearch($mid, $params);
-        } else {
-            $query = $this->mysqlSearch($mid, $params);
-        }
+        $query = $this->mysqlSearch($mid, $params);
         if ($sort) {
-            $direction = substr($sort, 0, 1) === '-' ? 'desc' : 'asc';
-            if ($direction === 'desc') {
-                $sortField = substr($sort, 1);
-            } else {
-                $sortField = $sort;
+            $sorts = explode(',', $sort);
+            foreach ($sorts as $sortItem) {
+                $direction = (substr($sortItem, 0, 1) === '-') ? 'desc' : 'asc';
+                if ($direction === 'desc') {
+                    $sortField = substr($sortItem, 1);
+                } else {
+                    $sortField = $sortItem;
+                }
+                $query->orderBy($sortField, $direction);
             }
-            $query->orderBy($sortField, $direction);
         }
         return $query->paginate(
             null,
@@ -429,68 +427,6 @@ class BaseRepository
 
         return $query;
 
-    }
-
-    /**
-     * Search from mongodb
-     *
-     * @param int $mid
-     * @param array $params
-     * @return Builder|null
-     * @throws \Exception
-     */
-    public function mongoSearch($mid, $params)
-    {
-        $query = $this->getQuery($mid);
-        $params = isset($params['filter']) && is_array($params['filter']) ? $params['filter'] : array();
-        if ((!isset($params['mid']) || !$params['mid']) && !$this->isCli()) {
-            if ($mid) {
-                $params['mid'] = $mid;
-            }
-        }
-        $filterable = $this->filterable;
-        if (in_array('*', $filterable)) {
-            $filterable = array_merge($filterable, array_keys($params));
-        }
-
-        $operatorMapping = array(
-            "gt" => ">",
-            "lt" => "<",
-            "gte" => ">=",
-            "lte" => "<=",
-        );
-        foreach($filterable as $attributesCode) {
-            if ($attributesCode === '*') {
-                continue;
-            }
-
-            if (isset($params[$attributesCode])) {
-                if (is_array($params[$attributesCode])) {
-                    foreach($params[$attributesCode] as $p => $v) {
-                        if (isset($operatorMapping[$p])) {
-                            $p = $operatorMapping[$p];
-                        }
-                        if (in_array($attributesCode, $query->getModel()->getDates())) {
-                            $v = new UTCDateTime($v * 1000);
-                        }
-                        if ($p === 'like') {
-                            $v = '%' . $v . '%';
-                        }
-                        $query->where($attributesCode, $p, $v);
-                    }
-                } elseif ($params[$attributesCode] == 'have_value') {
-                    $query->where($attributesCode, 'exists', true);
-                    $query->whereNotNull($attributesCode);
-                } elseif ($params[$attributesCode] == 'no_value') {
-                    $query->where($attributesCode, 'exists', false);
-                    $query->whereNull($attributesCode);
-                } else {
-                    $query->where($attributesCode, '=', $params[$attributesCode]);
-                }
-            }
-        }
-
-        return $query;
     }
 
     /**
