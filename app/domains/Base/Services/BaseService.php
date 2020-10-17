@@ -420,7 +420,7 @@ class BaseService
         $request = new GuzzleRequest($method, $url, $headers, $body, '1.1');
         $client = new HttpClient();
 
-        $response = $client->send($request, ['timeout' => $timeout, 'allow_redirects' => ['max' => 10], 'decode_content' => true]);
+        $response = $client->sendWithTrace($request, ['timeout' => $timeout, 'allow_redirects' => ['max' => 10], 'decode_content' => true]);
 
         $result = (array)($response ? $response->getBody()->getContents() : '');
         $result = json_decode(array_pop($result), true);
