@@ -77,6 +77,9 @@ class ProviderManager
             $installedJson = file_get_contents($installedJsonPath);
             if ($installedJson) {
                 $dependencies = json_decode($installedJson, true);
+                if (isset($dependencies['packages'])) {
+                    $dependencies = $dependencies['packages'];
+                }
                 $excludedProviders = static::excludedComposerProviders();
                 foreach ($dependencies as $dependency) {
                     if (isset($dependency['extra']['yaravel']['providers'])) {
