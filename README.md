@@ -4,6 +4,7 @@
 
 # Requirement
 
+- Composer 1.x
 - PHP >= 7.0
 - Yaf >= 3.0
 
@@ -20,6 +21,7 @@ yaf.use_spl_autoload=1
 2. Create project.
 
 ```shell
+# Only support composer 1.x
 $ composer create-project overtrue/yaf-skeleton myapp -vvv
 ```
 
