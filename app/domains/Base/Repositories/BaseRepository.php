@@ -8,7 +8,6 @@ use App\Support\Traits\PhpSapi;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use MongoDB\BSON\UTCDateTime;
 use App\Exceptions\HttpException;
 
 class BaseRepository
@@ -25,14 +24,10 @@ class BaseRepository
 
     protected $soft_deleted = 1;
 
-    protected $filterable = ['mid'];
+    protected $filterable = [];
 
     public function __construct()
     {
-        if (!in_array('mid', $this->filterable)) {
-            array_push($this->filterable, 'mid');
-        }
-
         \Registry::set(static::class, $this);
     }
 
@@ -337,113 +332,6 @@ class BaseRepository
     }
 
     /**
-     * Get paginated list
-     *
-     * @param string|null $sort
-     * @param int|null $page
-     * @param int $mid
-     * @param array $params
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
-     * @throws \Exception
-     */
-    public function getList($page, $sort, $mid, $params)
-    {
-        $query = $this->mysqlSearch($mid, $params);
-        if ($sort) {
-            $sorts = explode(',', $sort);
-            foreach ($sorts as $sortItem) {
-                $direction = (substr($sortItem, 0, 1) === '-') ? 'desc' : 'asc';
-                if ($direction === 'desc') {
-                    $sortField = substr($sortItem, 1);
-                } else {
-                    $sortField = $sortItem;
-                }
-                $query->orderBy($sortField, $direction);
-            }
-        }
-        return $query->paginate(
-            null,
-            ['*'],
-            'page',
-            $page ? : null
-        );
-    }
-
-    /**
-     * Search from mysql
-     *
-     * @param int $mid
-     * @param array $params
-     * @return Builder|null
-     * @throws \Exception
-     */
-    public function mysqlSearch($mid, $params)
-    {
-        $query = $this->getQuery($mid);
-        $params = isset($params['filter']) && is_array($params['filter']) ? $params['filter'] : array();
-        if ((!isset($params['mid']) || !$params['mid']) && !$this->isCli()) {
-            if ($mid) {
-                $params['mid'] = $mid;
-            }
-        }
-        $filterable = $this->filterable;
-        if (in_array('*', $filterable)) {
-            $filterable = array_merge($filterable, array_keys($params));
-        }
-
-        $operatorMapping = array(
-            "gt" => ">",
-            "lt" => "<",
-            "gte" => ">=",
-            "lte" => "<=",
-        );
-        foreach($filterable as $attributesCode) {
-            if ($attributesCode === '*') {
-                continue;
-            }
-
-            if (isset($params[$attributesCode])) {
-                if (is_array($params[$attributesCode])) {
-                    foreach($params[$attributesCode] as $p => $v) {
-                        if (isset($operatorMapping[$p])) {
-                            $p = $operatorMapping[$p];
-                        }
-                        if ($p === 'like') {
-                            $v = '%' . $v . '%';
-                        }
-                        $query->where($attributesCode, $p, $v);
-                    }
-                } elseif ($params[$attributesCode] == 'have_value') {
-                    $query->where($attributesCode, 'exists', true);
-                    $query->whereNotNull($attributesCode);
-                } elseif ($params[$attributesCode] == 'no_value') {
-                    $query->where($attributesCode, 'exists', false);
-                    $query->whereNull($attributesCode);
-                } else {
-                    $query->where($attributesCode, '=', $params[$attributesCode]);
-                }
-            }
-        }
-
-        return $query;
-
-    }
-
-    /**
-     * Fetch by uuid
-     *
-     * @param int $mid
-     * @param string $id
-     * @return Model
-     */
-    public function view($mid, $id)
-    {
-        return $this->getQuery($mid)->where([
-            'mid' => $mid,
-        ])->shortUuid($id);
-    }
-
-    /**
      * Add a data
      *
      * @param array $values
@@ -461,57 +349,6 @@ class BaseRepository
                 $errors = $this->serializeModelErrors($model->getErrors());
             } else {
                 $errors = 'Failed to create the object for unknown reason';
-            }
-
-            throw new HttpException(200, $errors, null, [], $code);
-        }
-
-        return $model->toArray();
-    }
-
-    /**
-     * Remove a data
-     *
-     * @param string $id
-     * @param int $mid
-     * @return bool
-     * @throws \Exception
-     */
-    public function removeOne($id, $mid)
-    {
-        $model = self::view($mid, $id);
-
-        if (!$model->delete()) {
-            throw new HttpException(200, 'Failed to delete the object for unknown reason', null, [], Errors::ERROR);
-        }
-
-        return true;
-    }
-
-    /**
-     * Update a data by id and mid
-     *
-     * @param string $id
-     * @param int $mid
-     * @param array $values
-     * @throws \Exception
-     * @return array
-     */
-    public function updateByIdAndMid($id, $mid, $values)
-    {
-        /** @var Model|ModelEvents $model */
-        $model = $this->getQuery($mid)->where([
-            'mid' => $mid,
-        ])->shortUuid($id);
-
-        $model->fill($values);
-        //即使数据没有改变，save方法也是返回true
-        if (!$model->save()) {
-            $code = Errors::ERROR;
-            if ($model->hasErrors()) {
-                $errors = $this->serializeModelErrors($model->getErrors());
-            } else {
-                $errors = 'Failed to update the object for unknown reason';
             }
 
             throw new HttpException(200, $errors, null, [], $code);

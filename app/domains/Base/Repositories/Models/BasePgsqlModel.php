@@ -2,8 +2,6 @@
 
 namespace App\Domains\Base\Repositories\Models;
 
-use App\Domains\Base\Repositories\Models\Traits\ShortUuid;
-
 /**
  * Class BasePgsqlModel
  *
@@ -11,11 +9,5 @@ use App\Domains\Base\Repositories\Models\Traits\ShortUuid;
  */
 class BasePgsqlModel extends AbstractModel
 {
-    use ShortUuid;
-
-    public $primaryKey = 'id';
-    public $incrementing = false;
-    public $timestamps = false;
-
     protected $connection = 'pgsql';
 }
