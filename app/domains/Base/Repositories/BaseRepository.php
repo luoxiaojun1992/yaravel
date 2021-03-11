@@ -4,6 +4,7 @@ namespace App\Domains\Base\Repositories;
 
 use App\Consts\Errors;
 use App\Domains\Base\Repositories\Models\Traits\ModelEvents;
+use App\Support\ObjectUtil;
 use App\Support\Traits\PhpSapi;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,8 +24,6 @@ class BaseRepository
     protected $not_soft_deleted = 0;
 
     protected $soft_deleted = 1;
-
-    protected $filterable = [];
 
     public function __construct()
     {
@@ -355,6 +354,56 @@ class BaseRepository
         }
 
         return $model->toArray();
+    }
+
+    public function executeSql($sql, $bindings = [])
+    {
+        return $this->getModel()->getConnection()->statement($sql, $bindings);
+    }
+
+    /**
+     * @param $callback
+     * @param $sql
+     * @param array $bindings
+     * @return mixed
+     * @throws \Throwable
+     */
+    public function cursorSql($callback, $sql, $bindings = [])
+    {
+        $dbConnection = $this->getModel()->getConnection();
+
+        $pdo = $dbConnection->getPdo();
+        $pdo->setAttribute(
+            \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false
+        );
+        try {
+            $rows = $this->getModel()->getConnection()->cursor($sql, $bindings);
+            foreach ($rows as $row) {
+                if (!call_user_func($callback, ObjectUtil::toArray($row))) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (\Throwable $e) {
+            throw $e;
+        } finally {
+            $pdo->setAttribute(
+                \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true
+            );
+        }
+    }
+
+    public function selectSql($sql, $bindings = [])
+    {
+        $rows = $this->getModel()->getConnection()->select($sql, $bindings);
+        return array_map(function ($row) {
+            return ObjectUtil::toArray($row);
+        }, $rows);
+    }
+
+    public function selectOneSql($sql, $bindings = [])
+    {
+        return ObjectUtil::toArray($this->getModel()->getConnection()->selectOne($sql, $bindings));
     }
 
     protected function shardSuffix($shard_field, $shard_num)
